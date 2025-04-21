@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Días Administrativos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">Solicitar Días Administrativos</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="cantidad_dias" class="form-label">Cantidad de días</label>
+                        <input type="number" class="form-control" name="cantidad_dias" min="1" required>
+                    </div>
+
+                    {% if disponibles is not none %}
+                        <p><strong>Días disponibles:</strong> {{ available_days }}</p>
+                    {% endif %}
+
+                    {% if message %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Solicitar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

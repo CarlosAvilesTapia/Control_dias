@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4 text-center">Mi Dashboard - {{ user.username }}</h2>
+
+  <!-- Vacaciones -->
+  <div class="row mb-5">
+    <div class="col-md-6 text-center">
+      <img src="data:image/png;base64,{{ vac_chart }}" class="img-fluid" alt="Gráfico de Vacaciones">
+    </div>
+    <div class="col-md-6">
+      <h5 class="text-primary">Resumen de Vacaciones</h5>
+      <table class="table table-sm table-bordered">
+        <tbody>
+          <tr><th>Total asignadas</th><td>{{ vac_total|int }}</td></tr>
+          <tr><th>Usadas</th><td>{{ vac_used|int }}</td></tr>
+          <tr><th>Disponibles</th><td>{{ vac_total|int - vac_used|int }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Días Administrativos -->
+  <div class="row mb-5">
+    <div class="col-md-6 text-center">
+      <img src="data:image/png;base64,{{ admin_chart }}" class="img-fluid" alt="Gráfico de Días Administrativos">
+    </div>
+    <div class="col-md-6">
+      <h5 class="text-warning">Resumen de Días Administrativos</h5>
+      <table class="table table-sm table-bordered">
+        <tbody>
+          <tr><th>Total permitidos</th><td>{{ admin_max }}</td></tr>
+          <tr><th>Usados</th><td>{{ admin_used }}</td></tr>
+          <tr><th>Disponibles</th><td>{{ admin_max - admin_used }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Horas Extras -->
+  <div class="row mb-5">
+    <div class="col-md-6 text-center">
+      <img src="data:image/png;base64,{{ horas_chart }}" class="img-fluid" alt="Gráfico de Horas Extras y Compensadas">
+    </div>
+    <div class="col-md-6">
+      <h5 class="text-success">Resumen de Horas Extras</h5>
+      <table class="table table-sm table-bordered">
+        <tbody>
+          <tr><th>Total aprobadas</th><td>{{ extra_aprobadas }}</td></tr>
+          <tr><th>Compensadas</th><td>{{ compensadas }}</td></tr>
+          <tr><th>Disponibles</th><td>{{ extra_aprobadas - compensadas }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

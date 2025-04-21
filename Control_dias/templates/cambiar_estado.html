@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Cambiar Estado de Solicitud{% endblock %}
+
+{% block content %}
+<h2>Cambiar Estado de la Solicitud</h2>
+
+<!-- Mostrar mensaje si lo hay -->
+{% if message %}
+  <p style="color: red;">{{ message }}</p>
+{% endif %}
+
+{% if solicitud %}
+  <p><strong>ID de Solicitud:</strong> {{ solicitud.id }}</p>
+  <p><strong>ID Empleado:</strong> {{ solicitud.empleado_id }}</p>
+  <p><strong>Días Solicitados:</strong> {{ solicitud.cantidad_dias }}</p>
+  <p><strong>Fecha de Solicitud:</strong> {{ solicitud.fecha_solicitud }}</p>
+  <p><strong>Estado Actual:</strong> {{ solicitud.estado }}</p>
+
+  <form method="POST">
+    <div>
+      <label for="nuevo_estado">Nuevo Estado:</label>
+      <select name="nuevo_estado" id="nuevo_estado">
+        <option value="aprobado">Aprobado</option>
+        <option value="rechazado">Rechazado</option>
+      </select>
+    </div>
+    <div>
+      <button type="submit">Actualizar Estado</button>
+    </div>
+  </form>
+{% else %}
+  <p>No se encontró la solicitud.</p>
+{% endif %}
+{% endblock %}

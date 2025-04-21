@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4 text-center">Panel de Administración</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% set secciones = [
+        ('Días Administrativos', pending_administrativos, 'dias_administrativos'),
+        ('Vacaciones', pending_vacaciones, 'vacaciones'),
+        ('Horas Extras', pending_horas_extras, 'horas_extras'),
+        ('Horas Compensadas', pending_horas_compensadas, 'horas_compensadas')
+    ] %}
+
+    {% for titulo, solicitudes, modulo in secciones %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Solicitudes de {{ titulo }} Pendientes</h5>
+            </div>
+            <div class="card-body">
+                {% if solicitudes %}
+                    <div class="list-group">
+                        {% for solicitud in solicitudes %}
+                            <div class="list-group-item">
+                                <p class="mb-1">
+                                    <strong>Empleado:</strong> {{ solicitud.username }}<br>
+                                    {% if modulo == 'vacaciones' %}
+                                        <strong>Fechas:</strong> {{ solicitud.fecha_inicio }} a {{ solicitud.fecha_fin }}<br>
+                                        <strong>Días solicitados:</strong> {{ solicitud.dias_solicitados|int }}
+                                    {% elif modulo == 'dias_administrativos' %}
+                                        <strong>Días:</strong> {{ solicitud.cantidad_dias }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                    {% elif modulo == 'horas_extras' %}
+                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Motivo:</strong> {{ solicitud.motivo }}
+                                    {% elif modulo == 'horas_compensadas' %}
+                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                    {% endif %}
+                                </p>
+                                <form action="{{ url_for('admin.actualizar_estado') }}" method="post" class="row g-2 align-items-center">
+                                    <input type="hidden" name="modulo" value="{{ modulo }}">
+                                    <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                    <div class="col-auto">
+                                        <select name="nuevo_estado" class="form-select form-select-sm" required>
+                                            <option value="aprobado">Aprobado</option>
+                                            <option value="rechazado">Rechazado</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Actualizar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay solicitudes pendientes de {{ titulo | lower }}.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Horas Compensadas{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">Solicitar Horas Compensadas</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="cantidad_horas" class="form-label">Cantidad de horas a compensar</label>
+                        <input type="number" step="0.5" min="0.5" class="form-control" name="cantidad_horas" required>
+                    </div>
+
+                    <p><strong>Horas extra aprobadas disponibles:</strong> {{ available_hours }}</p>
+
+                    {% if message %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Solicitar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
