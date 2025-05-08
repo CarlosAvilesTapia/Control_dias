@@ -15,9 +15,18 @@
       <h5 class="text-primary">Resumen de Vacaciones</h5>
       <table class="table table-sm table-bordered">
         <tbody>
-          <tr><th>Total asignadas</th><td>{{ vac_total|int }}</td></tr>
-          <tr><th>Usadas</th><td>{{ vac_used|int }}</td></tr>
-          <tr><th>Disponibles</th><td>{{ vac_total|int - vac_used|int }}</td></tr>
+          <tr>
+            <th>Total asignadas</th>
+            <td>{{ vac_total|int }}</td>
+          </tr>
+          <tr>
+            <th>Usadas</th>
+            <td>{{ vac_used|int }}</td>
+          </tr>
+          <tr>
+            <th>Disponibles</th>
+            <td>{{ vac_available|int }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -32,9 +41,18 @@
       <h5 class="text-warning">Resumen de Días Administrativos</h5>
       <table class="table table-sm table-bordered">
         <tbody>
-          <tr><th>Total permitidos</th><td>{{ admin_max }}</td></tr>
-          <tr><th>Usados</th><td>{{ admin_used }}</td></tr>
-          <tr><th>Disponibles</th><td>{{ admin_max - admin_used }}</td></tr>
+          <tr>
+            <th>Total permitidos</th>
+            <td>{{ admin_max|int }}</td>
+          </tr>
+          <tr>
+            <th>Usados</th>
+            <td>{{ admin_used|int }}</td>
+          </tr>
+          <tr>
+            <th>Disponibles</th>
+            <td>{{ admin_available|int }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -49,9 +67,18 @@
       <h5 class="text-success">Resumen de Horas Extras</h5>
       <table class="table table-sm table-bordered">
         <tbody>
-          <tr><th>Total aprobadas</th><td>{{ extra_approved }}</td></tr>
-          <tr><th>Compensadas</th><td>{{ comp_requested }}</td></tr>
-          <tr><th>Disponibles</th><td>{{ extra_approved - comp_requested }}</td></tr>
+          <tr>
+            <th>Total aprobadas</th>
+            <td>{{ extra_approved|int }}</td>
+          </tr>
+          <tr>
+            <th>Compensadas</th>
+            <td>{{ comp_requested|int }}</td>
+          </tr>
+          <tr>
+            <th>Disponibles</th>
+            <td>{{ hours_available|int }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
