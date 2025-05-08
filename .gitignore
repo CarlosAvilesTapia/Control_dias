@@ -1,0 +1,15 @@
+# Virtualenv
+venv/
+
+# Cachés de Python
+__pycache__/
+*.py[cod]
+
+# Base de datos local
+Control_dias/mi_base.db
+
+# Archivos de VSCode
+.vscode/
+
+# Si usas un .env para secretos
+.env
