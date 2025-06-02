@@ -10,7 +10,7 @@
                 <h4 class="mb-0">Reportar Horas Extras</h4>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="horas-form">
                     <div class="mb-3">
                         <label for="fecha" class="form-label">Fecha</label>
                         <input type="date" class="form-control" name="fecha" required>
@@ -23,11 +23,17 @@
                         <label for="motivo" class="form-label">Motivo</label>
                         <input type="text" class="form-control" name="motivo" required>
                     </div>
-                    <div class="form-check mb-3">
+
+                    <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" value="1" id="doblar" name="doblar">
                         <label class="form-check-label" for="doblar">
                             Duplicar horas (fin de semana o feriado)
                         </label>
+                    </div>
+
+                    <!-- Mensaje dinámico que aparece al marcar el checkbox -->
+                    <div id="doblar-message" class="alert alert-warning" style="display: none;">
+                        ¿Duplicando? ¡Mish! la vidita...
                     </div>
 
                     {% if message %}
@@ -42,6 +48,19 @@
         </div>
     </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkboxDoblar = document.getElementById('doblar');
+    const mensajeDoblar  = document.getElementById('doblar-message');
+
+    checkboxDoblar.addEventListener('change', function() {
+      if (checkboxDoblar.checked) {
+        mensajeDoblar.style.display = 'block';
+      } else {
+        mensajeDoblar.style.display = 'none';
+      }
+    });
+  });
+</script>
 {% endblock %}
-
-

@@ -31,25 +31,25 @@ def solicitar_vacaciones():
         fecha_fin = request.form.get('fecha_fin')
 
         if not fecha_inicio or not fecha_fin:
-            message = "Por favor, complete todos los campos obligatorios."
+            message = "No tenemos bola de cristal. Complete las fechas."
             return render_template('solicitar_vacaciones.html', message=message, disponibles=disponibles)
         
         try:
             inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d")
             fin = datetime.strptime(fecha_fin, "%Y-%m-%d")
             if fin < inicio:
-                message = "La fecha fin debe ser posterior a la fecha inicio."
+                message = "¿Va a viajar en el tiempo? La fecha final debe ser posterior a la fecha inicio."
                 return render_template('solicitar_vacaciones.html', message=message, disponibles=disponibles)
             
             dias_solicitados = contar_dias_habiles(inicio, fin, feriados_chile)
 
         except ValueError:
-            message = "Formato de fecha inválido."
+            message = "No entiendo su idea."
             return render_template('solicitar_vacaciones.html', message=message, disponibles=disponibles)
         
         if dias_solicitados > disponibles:
             dia_palabra = "día" if disponibles == 1 else "días"
-            message = f"Has solicitado {dias_solicitados} días, pero solo tienes {disponibles} {dia_palabra} disponibles."
+            message = f"¡Ubíquese! Ha solicitado {dias_solicitados} días, pero solo tiene {disponibles} {dia_palabra} disponibles."
             return render_template('solicitar_vacaciones.html', message=message, disponibles=disponibles)
         
         # Registrar la solicitud con estado "pendiente"
@@ -58,7 +58,7 @@ def solicitar_vacaciones():
             (empleado_id, fecha_inicio, fecha_fin, 'pendiente')
         )
         db.commit()
-        message = "Solicitud de vacaciones registrada exitosamente."
+        message = "Solicitud de vacaciones enviada. Mande fruta y vuelva con algo."
         disponibles = max(0, disponibles - dias_solicitados)
 
     return render_template('solicitar_vacaciones.html', message=message, disponibles=disponibles)

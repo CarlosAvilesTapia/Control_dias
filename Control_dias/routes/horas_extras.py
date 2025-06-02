@@ -15,13 +15,13 @@ def reportar_horas_extras():
         try:
             cantidad_horas = float(request.form.get('cantidad_horas'))
         except (ValueError, TypeError):
-            message = "Cantidad de horas inválida."
+            message = "¿Qué está haciendo? Ingrese la cantidad de horas."
             return render_template('reportar_horas_extras.html', message=message)
         
         motivo = request.form.get('motivo')
 
         if not fecha or cantidad_horas <= 0 or not motivo:
-            message = "Por favor, complete todos los campos."
+            message = "Por favor, haga el reporte como se debe."
             return render_template('reportar_horas_extras.html', message=message)
         
         # Verificación si las horas son dobles.
@@ -35,7 +35,7 @@ def reportar_horas_extras():
             (empleado_id, fecha, cantidad_horas, motivo, 'pendiente')
         )
         db.commit()
-        message = "Horas extras reportadas exitosamente."
+        message = "Horas extras reportadas exitosamente ¡Muchas gracias por su esfuerzo!"
     
     return render_template('reportar_horas_extras.html', message=message)
 
@@ -70,15 +70,15 @@ def solicitar_horas_compensadas():
         try:
             requested_hours = float(request.form.get('cantidad_horas'))
         except (ValueError, TypeError):
-            message = "Cantidad de horas inválida."
+            message = "¿Qué está haciendo? Ingrese la cantidad de horas que quiere solicitar."
             return render_template('solicitar_horas_compensadas.html', message=message, available_hours=available_hours)
         
         if requested_hours <= 0:
-            message = "La cantidad de horas debe ser mayor a cero."
+            message = "Pida una hora por lo menos ¿Para qué se metió acá?"
             return render_template('solicitar_horas_compensadas.html', message=message, available_hours=available_hours)
         
         if requested_hours > available_hours:
-            message = f"No dispones de suficientes horas extra aprobadas. Disponibles: {available_hours}."
+            message = f"Parece que no se ha puesto la camiseta. Solo tiene disponibles: {available_hours} horas."
             return render_template('solicitar_horas_compensadas.html', message=message, available_hours=available_hours)
         
         # Registrar la solicitud de horas compensadas con estado "pendiente"
@@ -88,6 +88,6 @@ def solicitar_horas_compensadas():
             (empleado_id, requested_hours, fecha_solicitud, 'pendiente')
         )
         db.commit()
-        message = "Solicitud de horas compensadas registrada exitosamente."
+        message = "Solicitud de horas compensadas enviada. Vaya con dios."
     
     return render_template('solicitar_horas_compensadas.html', message=message, available_hours=available_hours)

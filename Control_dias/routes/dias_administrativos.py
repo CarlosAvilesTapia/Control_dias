@@ -29,17 +29,17 @@ def solicitar_dias_administrativos():
         try:
             cantidad_dias = int(request.form.get('cantidad_dias'))
         except (ValueError, TypeError):
-            message = "Cantidad de días inválida."
+            message = "¿Qué está haciendo? Ingrese la cantidad de días."
             return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
         
         if cantidad_dias <= 0:
-            message = "La cantidad de días debe ser mayor a cero."
+            message = "Pida un día por lo menos ¿Para qué se metió acá?"
             return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
 
         # Verificar que la nueva solicitud no exceda el máximo permitido.
         if total_dias_usados + cantidad_dias > MAX_DIAS_LIBRES:
             message = (
-                f"Se excede el máximo de días administrativos permitidos (6 días por año). "
+                f"Ya se tomó los 6 días. Suerte para el próximo año."
                 f"Días ya usados: {total_dias_usados}, días solicitados: {cantidad_dias}."
             )
             return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
@@ -51,7 +51,7 @@ def solicitar_dias_administrativos():
             (empleado_id, cantidad_dias, fecha_solicitud, 'pendiente')
         )
         db.commit()
-        message = "Solicitud de días administrativos registrada exitosamente."
+        message = "Solicitud de días administrativos enviada. Vaya con dios."
 
         # Actualizar el contador tras la inserción
         total_dias_usados += cantidad_dias

@@ -7,6 +7,8 @@ __pycache__/
 
 # Base de datos local
 Control_dias/mi_base.db
+Control_dias/create_users.py
+Control_dias/reset_db.py
 
 # Archivos de VSCode
 .vscode/
