@@ -19,7 +19,54 @@ def _render_chart(fig):
 
 
 def create_vacation_chart(total, used):
-    restante = max(0, total - used)
+    """
+    Crea un gráfico circular (pie) para Vacaciones.
+    Si total == 0 o los valores no son válidos, dibuja un texto indicativo.
+    """
+    # Intentamos convertir a float; si falla, lo consideramos 0
+    try:
+        total = float(total)
+    except (TypeError, ValueError):
+        total = 0.0
+
+    try:
+        used = float(used)
+    except (TypeError, ValueError):
+        used = 0.0
+
+    # Si no hay vacaciones asignadas o used > total, mostramos texto
+    if total <= 0 or used < 0 or used > total:
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+        ax.axis('off')
+        ax.text(
+            0.5, 0.5,
+            'No hay vacaciones\nasignadas',
+            horizontalalignment='center',
+            verticalalignment='center',
+            fontsize=12,
+            color='gray'
+        )
+        return _render_chart(fig)
+
+    # Calculamos las restantes
+    restante = total - used
+    # Si restante es 0 (todas usadas), también mostramos texto
+    if restante <= 0:
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+        ax.axis('off')
+        ax.text(
+            0.5, 0.5,
+            'Todas las vacaciones\nya están usadas',
+            horizontalalignment='center',
+            verticalalignment='center',
+            fontsize=12,
+            color='gray'
+        )
+        return _render_chart(fig)
+    
+
+
+    # Caso normal: dibujo del pie
     fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
     ax.pie(
         [used, restante],
