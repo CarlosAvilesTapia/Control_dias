@@ -30,7 +30,7 @@ def login():
             else:
                 return redirect(url_for('dashboards.mi_dashboard'))
         else:
-            error = "Usuario o contraseña incorrectos ¿Es parte del equipo?"
+            error = "¿Quién es usted? ¿Es parte del equipo?"
             return render_template('login.html', error=error)
 
     return render_template('login.html')           

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Solicitar Días Administrativos{% endblock %}
 
 {% block content %}
@@ -10,18 +9,31 @@
                 <h4 class="mb-0">Solicitar Días Administrativos</h4>
             </div>
             <div class="card-body">
-                <form method="post">
+                <!--  ↓ nova­lidate para desactivar validación nativa del navegador -->
+                <form method="post" novalidate>
                     <div class="mb-3">
                         <label for="cantidad_dias" class="form-label">Cantidad de días</label>
-                        <input type="number" class="form-control" name="cantidad_dias" min="1" required>
+                        <input
+                            type="number"
+                            class="form-control"
+                            name="cantidad_dias"
+                            min="1"
+                            max="{{ available_days }}"
+                            required
+                        >
                     </div>
 
-                    {% if disponibles is not none %}
+                    {% if available_days is not none %}
                         <p><strong>Días disponibles:</strong> {{ available_days }}</p>
                     {% endif %}
 
                     {% if message %}
-                        <div class="alert alert-info">{{ message }}</div>
+                        {% set alert_class = "info" %}
+                        {% if message_type == "success" %}{% set alert_class = "success" %}{% endif %}
+                        {% if message_type == "danger"  %}{% set alert_class = "danger"  %}{% endif %}
+                        <div class="alert alert-{{ alert_class }}">
+                            {{ message }}
+                        </div>
                     {% endif %}
 
                     <div class="d-grid">

@@ -6,14 +6,6 @@
 <div class="container">
     <h2 class="mb-4 text-center">Panel de Administración</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
     {% set secciones = [
         ('Días Administrativos', pending_administrativos, 'dias_administrativos'),
         ('Vacaciones', pending_vacaciones, 'vacaciones'),

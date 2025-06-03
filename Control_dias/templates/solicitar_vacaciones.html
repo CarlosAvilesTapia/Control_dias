@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Solicitar Vacaciones{% endblock %}
 
 {% block content %}
@@ -10,27 +9,65 @@
                 <h4 class="mb-0">Solicitar Vacaciones</h4>
             </div>
             <div class="card-body">
+                <!-- El formulario tiene dos botones: Calcular y Enviar -->
                 <form method="post">
                     <div class="mb-3">
                         <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                        <input type="date" class="form-control" name="fecha_inicio" required>
+                        <input
+                            type="date"
+                            id="fecha_inicio"
+                            name="fecha_inicio"
+                            class="form-control"
+                            value="{{ fecha_inicio }}"
+                        >
                     </div>
                     <div class="mb-3">
                         <label for="fecha_fin" class="form-label">Fecha de fin</label>
-                        <input type="date" class="form-control" name="fecha_fin" required>
+                        <input
+                            type="date"
+                            id="fecha_fin"
+                            name="fecha_fin"
+                            class="form-control"
+                            value="{{ fecha_fin }}"
+                        >
                     </div>
 
                     {% if disponibles is not none %}
                         <p><strong>Días disponibles:</strong> {{ disponibles|int }}</p>
                     {% endif %}
 
-                    {% if message %}
-                        <div class="alert alert-info">{{ message }}</div>
+                    {% if dias_solicitados is not none %}
+                        <p><strong>Días hábiles calculados:</strong> {{ dias_solicitados|int }}</p>
                     {% endif %}
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success">Solicitar</button>
-                    </div>
+                    {% if message %}
+                        {% set alert_class = "info" %}
+                        {% if message_type == "success" %}{% set alert_class = "success" %}{% endif %}
+                        {% if message_type == "danger"  %}{% set alert_class = "danger"  %}{% endif %}
+                        <div class="alert alert-{{ alert_class }}">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Botón Calcular -->
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="calcular"
+                        class="btn btn-outline-primary w-100 mb-2"
+                    >
+                        Calcular días
+                    </button>
+
+                    <!-- Botón Enviar -->
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="enviar"
+                        class="btn btn-success w-100"
+                    >
+                        Enviar solicitud
+                    </button>
                 </form>
             </div>
         </div>

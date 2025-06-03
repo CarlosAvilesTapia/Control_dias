@@ -156,6 +156,6 @@ def actualizar_estado():
         flash("Módulo desconocido.", "error")
         return redirect(url_for('admin.admin_panel'))
 
-    db.commit()
+    db.commit()    
     flash("Estado actualizado correctamente.", "success")
     return redirect(url_for('admin.admin_panel'))

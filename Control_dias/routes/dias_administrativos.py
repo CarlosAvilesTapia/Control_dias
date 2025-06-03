@@ -12,13 +12,20 @@ MAX_DIAS_LIBRES = 6
 @login_required
 def solicitar_dias_administrativos():
     message = None
+    message_type = None
     empleado_id = current_user.id
     db = get_db()
     current_year = datetime.now().year
 
     # Calcular la cantidad de días ya solicitados en el año actual para este empleado
     cur = db.execute(
-        "SELECT SUM(cantidad_dias) AS total FROM dias_administrativos WHERE empleado_id = ? AND strftime('%Y', fecha_solicitud) = ?",
+        """
+        SELECT SUM(cantidad_dias) AS total 
+        FROM dias_administrativos 
+        WHERE empleado_id = ?
+        AND strftime('%Y', fecha_solicitud) = ?
+        AND estado = 'aprobado'
+        """,
         (empleado_id, str(current_year))
     )
     row = cur.fetchone()
@@ -30,19 +37,31 @@ def solicitar_dias_administrativos():
             cantidad_dias = int(request.form.get('cantidad_dias'))
         except (ValueError, TypeError):
             message = "¿Qué está haciendo? Ingrese la cantidad de días."
-            return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
+            message_type = "danger"
+            return render_template('solicitar_dias_administrativos.html', 
+                                   message=message, 
+                                   message_type=message_type, 
+                                   available_days=available_days)
         
         if cantidad_dias <= 0:
             message = "Pida un día por lo menos ¿Para qué se metió acá?"
-            return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
+            message_type = "danger"
+            return render_template('solicitar_dias_administrativos.html', 
+                                   message=message, 
+                                   message_type=message_type, 
+                                   available_days=available_days)
 
         # Verificar que la nueva solicitud no exceda el máximo permitido.
         if total_dias_usados + cantidad_dias > MAX_DIAS_LIBRES:
             message = (
-                f"Ya se tomó los 6 días. Suerte para el próximo año."
-                f"Días ya usados: {total_dias_usados}, días solicitados: {cantidad_dias}."
+                f"¿Más de {MAX_DIAS_LIBRES} días por año? ¡Pare de gozar!. "
+                f"Ha usado {total_dias_usados} días y está solicitando {cantidad_dias} días. Otsea."
             )
-            return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
+            message_type = "danger"
+            return render_template('solicitar_dias_administrativos.html', 
+                                   message=message, 
+                                   message_type=message_type, 
+                                   available_days=available_days)
 
         # Registrar la solicitud
         fecha_solicitud = datetime.now().strftime("%Y-%m-%d")
@@ -52,9 +71,13 @@ def solicitar_dias_administrativos():
         )
         db.commit()
         message = "Solicitud de días administrativos enviada. Vaya con dios."
+        message_type = "success"
 
         # Actualizar el contador tras la inserción
         total_dias_usados += cantidad_dias
         available_days = MAX_DIAS_LIBRES - total_dias_usados
 
-    return render_template('solicitar_dias_administrativos.html', message=message, available_days=available_days)
+    return render_template('solicitar_dias_administrativos.html', 
+                           message=message, 
+                           message_type=message_type, 
+                           available_days=available_days)

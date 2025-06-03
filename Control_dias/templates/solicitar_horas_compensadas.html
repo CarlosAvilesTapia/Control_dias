@@ -10,16 +10,25 @@
                 <h4 class="mb-0">Solicitar Horas Compensadas</h4>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" novalidate>
                     <div class="mb-3">
                         <label for="cantidad_horas" class="form-label">Cantidad de horas a compensar</label>
-                        <input type="number" step="0.5" min="0.5" class="form-control" name="cantidad_horas" required>
+                        <input type="number"
+                               step="0.5"
+                               min="0.5"
+                               class="form-control"
+                               name="cantidad_horas">
                     </div>
 
                     <p><strong>Horas extra aprobadas disponibles:</strong> {{ available_hours }}</p>
 
                     {% if message %}
-                        <div class="alert alert-info">{{ message }}</div>
+                        {% set alert_class = "info" %}
+                        {% if message_type == "success" %}{% set alert_class = "success" %}{% endif %}
+                        {% if message_type == "danger"  %}{% set alert_class = "danger"  %}{% endif %}
+                        <div class="alert alert-{{ alert_class }}">
+                            {{ message }}
+                        </div>
                     {% endif %}
 
                     <div class="d-grid">
