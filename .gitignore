@@ -9,6 +9,7 @@ __pycache__/
 Control_dias/mi_base.db
 Control_dias/create_users.py
 Control_dias/reset_db.py
+Control_dias/change_password.py
 
 # Archivos de VSCode
 .vscode/
