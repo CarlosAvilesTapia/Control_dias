@@ -83,7 +83,7 @@ def create_vacation_chart(total, used):
 
 
 def create_admin_chart(maximo, usados):
-    restante = max(0, maximo - usados)
+    restante = max(0.0, maximo - usados)
     fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
     ax.pie(
         [usados, restante],
@@ -100,7 +100,7 @@ def create_admin_chart(maximo, usados):
 
 
 def create_hours_chart(aprobadas, compensadas):
-    restante = max(0, aprobadas - compensadas)
+    restante = max(0.0, aprobadas - compensadas)
     labels = ['Aprobadas', 'Compensadas', 'Disponibles']
     valores = [aprobadas, compensadas, restante]
     colores = ['#0dcaf0', '#fd7e14', '#20c997']  # Bootstrap info, orange, green
