@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS vacaciones (
     empleado_id TEXT NOT NULL,
     fecha_inicio TEXT NOT NULL,
     fecha_fin TEXT NOT NULL,
-    estado TEXT NOT NULL
+    cantidad_dias REAL  NOT NULL,
+    estado TEXT NOT NULL,
+    FOREIGN KEY (empleado_id) REFERENCES users(id)
 );
 
 -- Tabla para reporte de horas extras

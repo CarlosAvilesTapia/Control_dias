@@ -169,9 +169,10 @@ def actualizar_estado():
     # —— VACACIONES —— 
     elif modulo == 'vacaciones':
         sol = db.execute(
-            "SELECT empleado_id, fecha_inicio, fecha_fin FROM vacaciones WHERE id = ?",
+            "SELECT empleado_id, fecha_inicio, fecha_fin, cantidad_dias FROM vacaciones WHERE id = ?",
             (solicitud_id,)
         ).fetchone()
+
         if not sol:
             flash("Solicitud no encontrada.", "error")
             return redirect(url_for('admin.admin_panel'))
@@ -179,7 +180,7 @@ def actualizar_estado():
         empleado_id = sol['empleado_id']
         inicio = datetime.strptime(sol['fecha_inicio'], "%Y-%m-%d")
         fin    = datetime.strptime(sol['fecha_fin'],    "%Y-%m-%d")
-        dias_solicitados = contar_dias_habiles(inicio, fin, feriados_chile)
+        dias_solicitados = int(sol['cantidad_dias'])
 
         usr = db.execute(
             "SELECT dias_vacaciones FROM users WHERE id = ?",
@@ -188,10 +189,11 @@ def actualizar_estado():
         asignadas = int(usr['dias_vacaciones'])
 
         used = db.execute("""
-            SELECT SUM(JULIANDAY(fecha_fin)-JULIANDAY(fecha_inicio)+1) AS usadas
+            SELECT SUM(cantidad_dias) AS usadas
             FROM vacaciones
             WHERE empleado_id = ? AND estado = 'aprobado'
         """, (empleado_id,)).fetchone()['usadas'] or 0
+
         usadas = int(used)
 
         # Si intentan aprobar, validamos cupo

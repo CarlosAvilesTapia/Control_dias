@@ -20,8 +20,9 @@ def solicitar_vacaciones():
 
     # Sumar sólo las vacaciones con estado 'aprobado'
     cur = db.execute(
-        "SELECT SUM(JULIANDAY(fecha_fin) - JULIANDAY(fecha_inicio) + 1) AS total "
-        "FROM vacaciones WHERE empleado_id = ? AND estado = 'aprobado'",
+        "SELECT SUM(cantidad_dias) AS total "
+        "FROM vacaciones "
+        "WHERE empleado_id = ? AND estado = 'aprobado'",
         (empleado_id,)
     )
     row = cur.fetchone()
@@ -127,8 +128,10 @@ def solicitar_vacaciones():
 
         # Registrar la solicitud con estado "pendiente"
         db.execute(
-            "INSERT INTO vacaciones (empleado_id, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?)",
-            (empleado_id, fecha_inicio, fecha_fin, 'pendiente')
+            "INSERT INTO vacaciones "
+            "(empleado_id, fecha_inicio, fecha_fin, cantidad_dias, estado) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (empleado_id, fecha_inicio, fecha_fin, dias_solicitados, 'pendiente')
         )
         db.commit()
 

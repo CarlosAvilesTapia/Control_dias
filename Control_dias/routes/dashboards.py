@@ -38,19 +38,13 @@ def employee_dashboard(employee_id):
         abort(404)
 
     # VACACIONES
-    vac_total = employee['dias_vacaciones']
-    # Traemos cada rango aprobado en lugar de hacer SUM en SQL
-    vac_rows = db.execute("""
-        SELECT fecha_inicio, fecha_fin
+    vac_total = int(employee['dias_vacaciones'])    
+    vac_used_row = db.execute("""
+        SELECT SUM(cantidad_dias) AS used
         FROM vacaciones
         WHERE empleado_id = ? AND estado = 'aprobado'
-    """, (employee_id,)).fetchall()
-
-    vac_used = 0
-    for r in vac_rows:
-        inicio = datetime.strptime(r['fecha_inicio'], "%Y-%m-%d")
-        fin    = datetime.strptime(r['fecha_fin'],    "%Y-%m-%d")
-        vac_used += contar_dias_habiles(inicio, fin, feriados_chile)
+    """, (employee_id,)).fetchone()
+    vac_used = int(vac_used_row['used']) if vac_used_row['used'] is not None else 0
 
     vac_available = max(0, vac_total - vac_used)
     vac_chart     = create_vacation_chart(vac_total, vac_used)
@@ -111,21 +105,13 @@ def mi_dashboard():
     empleado_id = current_user.id
 
     # VACACIONES
-    vac_total = current_user.dias_vacaciones
-    vac_rows  = db.execute("""
-        SELECT fecha_inicio, fecha_fin
+    vac_total = int(current_user.dias_vacaciones)
+    vac_used_row = db.execute("""
+        SELECT SUM(cantidad_dias) AS used
         FROM vacaciones
         WHERE empleado_id = ? AND estado = 'aprobado'
-    """, (empleado_id,)).fetchall()
-
-    vac_used = sum(
-        contar_dias_habiles(
-            datetime.strptime(r['fecha_inicio'], "%Y-%m-%d"),
-            datetime.strptime(r['fecha_fin'],    "%Y-%m-%d"),
-            feriados_chile
-        )
-        for r in vac_rows
-    )
+    """, (empleado_id,)).fetchone()
+    vac_used = int(vac_used_row['used']) if vac_used_row['used'] is not None else 0
 
     vac_available = max(0, vac_total - vac_used)
     vac_chart     = create_vacation_chart(vac_total, vac_used)
