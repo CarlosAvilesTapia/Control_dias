@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS horas_extras (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     empleado_id TEXT NOT NULL,
     fecha TEXT NOT NULL,
-    cantidad_horas INTEGER NOT NULL,
+    cantidad_horas REAL NOT NULL,
     motivo TEXT NOT NULL,
     estado TEXT NOT NULL
 );
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS horas_extras (
 CREATE TABLE IF NOT EXISTS dias_administrativos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     empleado_id TEXT NOT NULL,
-    cantidad_dias INTEGER NOT NULL,
+    cantidad_dias REAL NOT NULL,
     fecha_solicitud TEXT NOT NULL,
     estado TEXT NOT NULL
 );
