@@ -56,13 +56,13 @@ def employee_dashboard(employee_id):
     vac_chart     = create_vacation_chart(vac_total, vac_used)
 
     # DÍAS ADMINISTRATIVOS
-    admin_max = 6
+    admin_max = 6.0
     admin_used_row = db.execute(
         "SELECT SUM(cantidad_dias) AS used "
         "FROM dias_administrativos WHERE empleado_id = ? AND estado = 'aprobado'",
         (employee_id,)
     ).fetchone()
-    admin_used = int(admin_used_row['used']) if admin_used_row['used'] is not None else 0
+    admin_used = float(admin_used_row['used']) if admin_used_row['used'] is not None else 0.0
     admin_available = max(0, admin_max - admin_used)
     admin_chart = create_admin_chart(admin_max, admin_used)
 
@@ -131,13 +131,13 @@ def mi_dashboard():
     vac_chart     = create_vacation_chart(vac_total, vac_used)
 
     # DÍAS ADMINISTRATIVOS
-    admin_max = 6
+    admin_max = 6.0
     admin_used_row = db.execute(
         "SELECT SUM(cantidad_dias) AS used "
         "FROM dias_administrativos WHERE empleado_id = ? AND estado = 'aprobado'",
         (empleado_id,)
     ).fetchone()
-    admin_used = int(admin_used_row['used']) if admin_used_row['used'] is not None else 0
+    admin_used = float(admin_used_row['used']) if admin_used_row['used'] is not None else 0.0
     admin_available = max(0, admin_max - admin_used)
     admin_chart = create_admin_chart(admin_max, admin_used)
 

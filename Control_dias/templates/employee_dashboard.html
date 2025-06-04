@@ -43,15 +43,15 @@
         <tbody>
           <tr>
             <th>Total permitidos</th>
-            <td>{{ admin_max|int }}</td>
+            <td>{{ admin_max|round(2) }}</td>
           </tr>
           <tr>
             <th>Usados</th>
-            <td>{{ admin_used|int }}</td>
+            <td>{{ admin_used|round(2) }}</td>
           </tr>
           <tr>
             <th>Disponibles</th>
-            <td>{{ admin_available|int }}</td>
+            <td>{{ admin_available|round(2) }}</td>
           </tr>
         </tbody>
       </table>
@@ -69,15 +69,15 @@
         <tbody>
           <tr>
             <th>Total aprobadas</th>
-            <td>{{ extra_approved|int }}</td>
+            <td>{{ extra_approved|round(2) }}</td>
           </tr>
           <tr>
             <th>Compensadas</th>
-            <td>{{ comp_requested|int }}</td>
+            <td>{{ comp_requested|round(2) }}</td>
           </tr>
           <tr>
             <th>Disponibles</th>
-            <td>{{ hours_available|int }}</td>
+            <td>{{ hours_available|round(2) }}</td>
           </tr>
         </tbody>
       </table>

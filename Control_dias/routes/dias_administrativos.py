@@ -6,7 +6,7 @@ from datetime import datetime
 dias_administrativos_bp = Blueprint('dias_administrativos', __name__)
 
 # Límite máximo de días administrativos legales permitidos por año.
-MAX_DIAS_LIBRES = 6
+MAX_DIAS_LIBRES = 6.0
 
 @dias_administrativos_bp.route('/solicitar', methods=['GET', 'POST'])
 @login_required
@@ -29,12 +29,12 @@ def solicitar_dias_administrativos():
         (empleado_id, str(current_year))
     )
     row = cur.fetchone()
-    total_dias_usados = row['total'] if row['total'] is not None else 0
+    total_dias_usados = float(row['total']) if row['total'] is not None else 0.0
     available_days = MAX_DIAS_LIBRES - total_dias_usados
 
     if request.method == 'POST':           
         try:
-            cantidad_dias = int(request.form.get('cantidad_dias'))
+            cantidad_dias = float(request.form.get('cantidad_dias'))
         except (ValueError, TypeError):
             message = "¿Qué está haciendo? Ingrese la cantidad de días."
             message_type = "danger"
@@ -44,7 +44,7 @@ def solicitar_dias_administrativos():
                                    available_days=available_days)
         
         if cantidad_dias <= 0:
-            message = "Pida un día por lo menos ¿Para qué se metió acá?"
+            message = "Pida un media día por lo menos ¿Para qué se metió acá?"
             message_type = "danger"
             return render_template('solicitar_dias_administrativos.html', 
                                    message=message, 
@@ -54,8 +54,8 @@ def solicitar_dias_administrativos():
         # Verificar que la nueva solicitud no exceda el máximo permitido.
         if total_dias_usados + cantidad_dias > MAX_DIAS_LIBRES:
             message = (
-                f"¿Más de {MAX_DIAS_LIBRES} días por año? ¡Pare de gozar!. "
-                f"Ha usado {total_dias_usados} días y está solicitando {cantidad_dias} días. Otsea."
+                f"¿Más de {MAX_DIAS_LIBRES:.1f} días por año? ¡Pare de gozar!. "
+                f"Ha usado {total_dias_usados:.1f} días y está solicitando {cantidad_dias:.1f} días. Otsea."
             )
             message_type = "danger"
             return render_template('solicitar_dias_administrativos.html', 
