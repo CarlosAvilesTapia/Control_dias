@@ -11,8 +11,10 @@ def reportar_horas_extras():
     message = None
     message_type = None
     empleado_id = current_user.id
-    if request.method == 'POST':        
-        fecha = request.form.get('fecha')
+
+    if request.method == 'POST':
+        fecha = request.form.get('fecha')  # esperado: YYYY-MM-DD
+
         try:
             cantidad_horas = float(request.form.get('cantidad_horas'))
         except (ValueError, TypeError):
@@ -23,7 +25,7 @@ def reportar_horas_extras():
                 message=message,
                 message_type=message_type
             )
-        
+
         motivo = request.form.get('motivo')
 
         if not fecha or cantidad_horas <= 0 or not motivo:
@@ -34,26 +36,42 @@ def reportar_horas_extras():
                 message=message,
                 message_type=message_type
             )
-        
+
         # Verificación si las horas son dobles.
         if request.form.get('doblar'):
             cantidad_horas *= 2
 
-        # Conexión a la base de datos.
+        # Calcular año desde la fecha ingresada (YYYY-MM-DD)
+        try:
+            anio = int(fecha[:4])
+        except (ValueError, TypeError):
+            message = "La fecha no tiene un formato válido (YYYY-MM-DD)."
+            message_type = "danger"
+            return render_template(
+                'reportar_horas_extras.html',
+                message=message,
+                message_type=message_type
+            )
+
         db = get_db()
         db.execute(
-            "INSERT INTO horas_extras (empleado_id, fecha, cantidad_horas, motivo, estado) VALUES (?, ?, ?, ?, ?)",
-            (empleado_id, fecha, cantidad_horas, motivo, 'pendiente')
+            """
+            INSERT INTO horas_extras (empleado_id, fecha, cantidad_horas, motivo, estado, anio)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (empleado_id, fecha, cantidad_horas, motivo, 'pendiente', anio)
         )
         db.commit()
+
         message = "Horas extras reportadas exitosamente ¡Muchas gracias por su esfuerzo!"
         message_type = "success"
-    
+
     return render_template(
         'reportar_horas_extras.html',
-         message=message,
-         message_type=message_type
-         )
+        message=message,
+        message_type=message_type
+    )
+
 
 # Nueva ruta para solicitar horas compensadas (convertir horas extras en tiempo libre)
 @horas_extras_bp.route('/solicitar_compensadas', methods=['GET', 'POST'])
@@ -63,25 +81,36 @@ def solicitar_horas_compensadas():
     message_type = None
     empleado_id = current_user.id
     db = get_db()
-    
-    # Calcular cuántas horas extra aprobadas tiene el usuario.
-    # Esta consulta asume que las horas extras "aprobadas" están registradas en la tabla horas_extras.
-    # Total de horas extras aprobadas
+    current_year = datetime.now().year
+
+    # Total de horas extras aprobadas (solo del año actual)
     result_extra = db.execute(
-        "SELECT SUM(cantidad_horas) as total FROM horas_extras WHERE empleado_id = ? AND estado = 'aprobado'",
-        (empleado_id,)
+        """
+        SELECT COALESCE(SUM(cantidad_horas), 0) AS total
+        FROM horas_extras
+        WHERE empleado_id = ?
+          AND estado = 'aprobado'
+          AND anio = ?
+        """,
+        (empleado_id, current_year)
     ).fetchone()
-    total_extras_aprobadas = result_extra['total'] if result_extra['total'] is not None else 0
+    total_extras_aprobadas = float(result_extra['total'])
 
-    # Total de horas compensadas ya aprobadas
+    # Total de horas compensadas ya aprobadas (solo del año actual)
     result_compensadas = db.execute(
-        "SELECT SUM(cantidad_horas) as total FROM horas_compensadas WHERE empleado_id = ? AND estado = 'aprobado'",
-        (empleado_id,)
+        """
+        SELECT COALESCE(SUM(cantidad_horas), 0) AS total
+        FROM horas_compensadas
+        WHERE empleado_id = ?
+          AND estado = 'aprobado'
+          AND anio = ?
+        """,
+        (empleado_id, current_year)
     ).fetchone()
-    total_compensadas = result_compensadas['total'] if result_compensadas['total'] is not None else 0
+    total_compensadas = float(result_compensadas['total'])
 
-    # Horas disponibles = aprobadas - compensadas
-    available_hours = total_extras_aprobadas - total_compensadas 
+    # Horas disponibles = aprobadas - compensadas (del año actual)
+    available_hours = total_extras_aprobadas - total_compensadas
 
     if request.method == 'POST':
         try:
@@ -95,7 +124,7 @@ def solicitar_horas_compensadas():
                 message_type=message_type,
                 available_hours=available_hours
             )
-        
+
         if requested_hours <= 0:
             message = "Pida una hora por lo menos ¿Para qué se metió acá?"
             message_type = "danger"
@@ -105,7 +134,7 @@ def solicitar_horas_compensadas():
                 message_type=message_type,
                 available_hours=available_hours
             )
-        
+
         if requested_hours > available_hours:
             message = f"Parece que no se ha puesto la camiseta. Solo tiene disponibles: {available_hours} horas."
             message_type = "danger"
@@ -115,20 +144,26 @@ def solicitar_horas_compensadas():
                 message_type=message_type,
                 available_hours=available_hours
             )
-        
+
         # Registrar la solicitud de horas compensadas con estado "pendiente"
         fecha_solicitud = datetime.now().strftime("%Y-%m-%d")
+        anio = int(fecha_solicitud[:4])  # o current_year
+
         db.execute(
-            "INSERT INTO horas_compensadas (empleado_id, cantidad_horas, fecha_solicitud, estado) VALUES (?, ?, ?, ?)",
-            (empleado_id, requested_hours, fecha_solicitud, 'pendiente')
+            """
+            INSERT INTO horas_compensadas (empleado_id, cantidad_horas, fecha_solicitud, estado, anio)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (empleado_id, requested_hours, fecha_solicitud, 'pendiente', anio)
         )
         db.commit()
+
         message = "Solicitud de horas compensadas enviada. Vaya con dios."
         message_type = "success"
-    
+
     return render_template(
-        'solicitar_horas_compensadas.html', 
-        message=message, 
+        'solicitar_horas_compensadas.html',
+        message=message,
         message_type=message_type,
         available_hours=available_hours
     )

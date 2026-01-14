@@ -4,8 +4,9 @@ CREATE TABLE IF NOT EXISTS vacaciones (
     empleado_id TEXT NOT NULL,
     fecha_inicio TEXT NOT NULL,
     fecha_fin TEXT NOT NULL,
-    cantidad_dias REAL  NOT NULL,
+    cantidad_dias REAL NOT NULL,
     estado TEXT NOT NULL,
+    anio INTEGER NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES users(id)
 );
 
@@ -16,7 +17,9 @@ CREATE TABLE IF NOT EXISTS horas_extras (
     fecha TEXT NOT NULL,
     cantidad_horas REAL NOT NULL,
     motivo TEXT NOT NULL,
-    estado TEXT NOT NULL
+    estado TEXT NOT NULL,
+    anio INTEGER NOT NULL,
+    FOREIGN KEY (empleado_id) REFERENCES users(id)
 );
 
 -- Crear la tabla dias_administrativos si no existe
@@ -25,7 +28,9 @@ CREATE TABLE IF NOT EXISTS dias_administrativos (
     empleado_id TEXT NOT NULL,
     cantidad_dias REAL NOT NULL,
     fecha_solicitud TEXT NOT NULL,
-    estado TEXT NOT NULL
+    estado TEXT NOT NULL,
+    anio INTEGER NOT NULL,
+    FOREIGN KEY (empleado_id) REFERENCES users(id)
 );
 
 -- Crear tabla de usuarios
@@ -43,5 +48,7 @@ CREATE TABLE IF NOT EXISTS horas_compensadas (
     empleado_id TEXT NOT NULL,
     cantidad_horas REAL NOT NULL,
     fecha_solicitud TEXT NOT NULL,
-    estado TEXT NOT NULL
+    estado TEXT NOT NULL,
+    anio INTEGER NOT NULL,
+    FOREIGN KEY (empleado_id) REFERENCES users(id)
 );

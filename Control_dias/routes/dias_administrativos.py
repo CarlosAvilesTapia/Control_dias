@@ -20,36 +20,40 @@ def solicitar_dias_administrativos():
     # Calcular la cantidad de días ya solicitados en el año actual para este empleado
     cur = db.execute(
         """
-        SELECT SUM(cantidad_dias) AS total 
-        FROM dias_administrativos 
+        SELECT COALESCE(SUM(cantidad_dias), 0) AS total
+        FROM dias_administrativos
         WHERE empleado_id = ?
-        AND strftime('%Y', fecha_solicitud) = ?
-        AND estado = 'aprobado'
+          AND anio = ?
+          AND estado = 'aprobado'
         """,
-        (empleado_id, str(current_year))
+        (empleado_id, current_year)
     )
     row = cur.fetchone()
-    total_dias_usados = float(row['total']) if row['total'] is not None else 0.0
+    total_dias_usados = float(row['total']) if row and row['total'] is not None else 0.0
     available_days = MAX_DIAS_LIBRES - total_dias_usados
 
-    if request.method == 'POST':           
+    if request.method == 'POST':
         try:
             cantidad_dias = float(request.form.get('cantidad_dias'))
         except (ValueError, TypeError):
             message = "¿Qué está haciendo? Ingrese la cantidad de días."
             message_type = "danger"
-            return render_template('solicitar_dias_administrativos.html', 
-                                   message=message, 
-                                   message_type=message_type, 
-                                   available_days=available_days)
-        
+            return render_template(
+                'solicitar_dias_administrativos.html',
+                message=message,
+                message_type=message_type,
+                available_days=available_days
+            )
+
         if cantidad_dias <= 0:
             message = "Pida un media día por lo menos ¿Para qué se metió acá?"
             message_type = "danger"
-            return render_template('solicitar_dias_administrativos.html', 
-                                   message=message, 
-                                   message_type=message_type, 
-                                   available_days=available_days)
+            return render_template(
+                'solicitar_dias_administrativos.html',
+                message=message,
+                message_type=message_type,
+                available_days=available_days
+            )
 
         # Verificar que la nueva solicitud no exceda el máximo permitido.
         if total_dias_usados + cantidad_dias > MAX_DIAS_LIBRES:
@@ -58,18 +62,26 @@ def solicitar_dias_administrativos():
                 f"Ha usado {total_dias_usados:.1f} días y está solicitando {cantidad_dias:.1f} días. Otsea."
             )
             message_type = "danger"
-            return render_template('solicitar_dias_administrativos.html', 
-                                   message=message, 
-                                   message_type=message_type, 
-                                   available_days=available_days)
+            return render_template(
+                'solicitar_dias_administrativos.html',
+                message=message,
+                message_type=message_type,
+                available_days=available_days
+            )
 
         # Registrar la solicitud
         fecha_solicitud = datetime.now().strftime("%Y-%m-%d")
+        anio = int(fecha_solicitud[:4])  # o current_year, ambas sirven
+
         db.execute(
-            "INSERT INTO dias_administrativos (empleado_id, cantidad_dias, fecha_solicitud, estado) VALUES (?, ?, ?, ?)",
-            (empleado_id, cantidad_dias, fecha_solicitud, 'pendiente')
+            """
+            INSERT INTO dias_administrativos (empleado_id, cantidad_dias, fecha_solicitud, estado, anio)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (empleado_id, cantidad_dias, fecha_solicitud, 'pendiente', anio)
         )
         db.commit()
+
         message = "Solicitud de días administrativos enviada. Vaya con dios."
         message_type = "success"
 
@@ -77,7 +89,10 @@ def solicitar_dias_administrativos():
         total_dias_usados += cantidad_dias
         available_days = MAX_DIAS_LIBRES - total_dias_usados
 
-    return render_template('solicitar_dias_administrativos.html', 
-                           message=message, 
-                           message_type=message_type, 
-                           available_days=available_days)
+    return render_template(
+        'solicitar_dias_administrativos.html',
+        message=message,
+        message_type=message_type,
+        available_days=available_days
+    )
+

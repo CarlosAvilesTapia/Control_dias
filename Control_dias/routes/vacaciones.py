@@ -5,6 +5,34 @@ from datetime import datetime, timedelta
 
 vacaciones_bp = Blueprint('vacaciones', __name__)
 
+feriados_chile = {
+    "2026-01-01",  # Año Nuevo
+    "2026-04-03",  # Viernes Santo
+    "2026-04-04",  # Sábado Santo
+    "2026-05-01",  # Día del Trabajador
+    "2026-05-21",  # Glorias Navales
+    "2026-06-20",  # Día de los Pueblos Indígenas
+    "2026-06-29",  # San Pedro y San Pablo
+    "2026-07-16",  # Virgen del Carmen
+    "2026-08-15",  # Asunción de la Virgen
+    "2026-09-18",  # Independencia Nacional
+    "2026-09-19",  # Glorias del Ejército
+    "2026-10-12",  # Encuentro de Dos Mundos
+    "2026-10-31",  # Día de las Iglesias Evangélicas
+    "2026-12-08",  # Inmaculada Concepción
+    "2026-12-25"   # Navidad
+}
+
+def contar_dias_habiles(inicio, fin, feriados):
+    dias_habiles = 0
+    actual = inicio
+    while actual <= fin:
+        if actual.weekday() < 5 and actual.strftime('%Y-%m-%d') not in feriados:
+            dias_habiles += 1
+        actual += timedelta(days=1)
+    return dias_habiles
+
+
 @vacaciones_bp.route('/solicitar', methods=['GET', 'POST'])
 @login_required
 def solicitar_vacaciones():
@@ -14,19 +42,24 @@ def solicitar_vacaciones():
 
     empleado_id = current_user.id
     db = get_db()
+    current_year = datetime.now().year
 
     # Total de días asignados al empleado
     total_vacaciones = int(current_user.dias_vacaciones)
 
-    # Sumar sólo las vacaciones con estado 'aprobado'
+    # Sumar sólo las vacaciones con estado 'aprobado' del año actual
     cur = db.execute(
-        "SELECT SUM(cantidad_dias) AS total "
-        "FROM vacaciones "
-        "WHERE empleado_id = ? AND estado = 'aprobado'",
-        (empleado_id,)
+        """
+        SELECT COALESCE(SUM(cantidad_dias), 0) AS total
+        FROM vacaciones
+        WHERE empleado_id = ?
+          AND estado = 'aprobado'
+          AND anio = ?
+        """,
+        (empleado_id, current_year)
     )
     row = cur.fetchone()
-    dias_usados = int(row['total']) if row['total'] is not None else 0
+    dias_usados = int(row['total']) if row and row['total'] is not None else 0
 
     # Días disponibles
     disponibles = max(0, total_vacaciones - dias_usados)
@@ -75,6 +108,10 @@ def solicitar_vacaciones():
         # Contar días hábiles entre inicio y fin
         dias_solicitados = contar_dias_habiles(inicio, fin, feriados_chile)
 
+        # Año de la solicitud: por simplicidad tomamos el año de fecha_inicio
+        # (si algún día permites rangos que crucen año, conviene decidir regla)
+        anio = int(fecha_inicio[:4])
+
         # ¿Se presionó “Calcular” o “Enviar”?
         if request.form.get('accion') == 'calcular':
             # Sólo mostramos el resultado, no guardamos nada
@@ -99,7 +136,6 @@ def solicitar_vacaciones():
             )
 
         # Si llegaste aquí, asumimos que la acción es “enviar”
-        # Revalidamos en el servidor
         if dias_solicitados == 0:
             message = "Estos días son por cuenta de la casa... de nada."
             message_type = "danger"
@@ -128,25 +164,24 @@ def solicitar_vacaciones():
 
         # Registrar la solicitud con estado "pendiente"
         db.execute(
-            "INSERT INTO vacaciones "
-            "(empleado_id, fecha_inicio, fecha_fin, cantidad_dias, estado) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (empleado_id, fecha_inicio, fecha_fin, dias_solicitados, 'pendiente')
+            """
+            INSERT INTO vacaciones (empleado_id, fecha_inicio, fecha_fin, cantidad_dias, estado, anio)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (empleado_id, fecha_inicio, fecha_fin, dias_solicitados, 'pendiente', anio)
         )
         db.commit()
 
         message = "Solicitud de vacaciones enviada. Mande fruta y vuelva con algo."
         message_type = "success"
-        # Reducimos disponibles en la misma vista
         disponibles -= dias_solicitados
 
-        # En este punto, querrás limpiar dias_solicitados o mantenerlo para mostrar
         return render_template(
             'solicitar_vacaciones.html',
             message=message,
             message_type=message_type,
             disponibles=disponibles,
-            dias_solicitados=None,  # opcional: ocultar el contador tras enviar
+            dias_solicitados=None,
             fecha_inicio=None,
             fecha_fin=None
         )
@@ -161,29 +196,3 @@ def solicitar_vacaciones():
         fecha_inicio=None,
         fecha_fin=None
     )
-
-feriados_chile = {
-                "2025-01-01",  # Año Nuevo
-                "2025-04-18",  # Viernes Santo
-                "2025-04-19",  # Sábado Santo
-                "2025-05-01",  # Día del Trabajador
-                "2025-05-21",  # Día de las Glorias Navales
-                "2025-06-20",  # Nuevo: Día de los Pueblos Indígenas (ajustado según tu indicación)
-                "2025-06-29",  # San Pedro y San Pablo
-                "2025-07-16",  # Virgen del Carmen
-                "2025-08-15",  # Asunción de la Virgen
-                "2025-09-18",  # Independencia Nacional
-                "2025-09-19",  # Día de las Glorias del Ejército
-                "2025-10-31",  # Nuevo: Día de las Iglesias Evangélicas
-                "2025-12-08",  # Inmaculada Concepción
-                "2025-12-25"   # Navidad
-            }
-
-def contar_dias_habiles(inicio, fin, feriados):
-    dias_habiles = 0
-    actual = inicio
-    while actual <= fin:
-        if actual.weekday() < 5 and actual.strftime('%Y-%m-%d') not in feriados:
-            dias_habiles += 1
-        actual += timedelta(days=1)
-    return dias_habiles

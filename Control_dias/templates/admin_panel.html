@@ -6,6 +6,27 @@
 <div class="container">
     <h2 class="mb-4 text-center">Panel de Administración</h2>
 
+    {# Selector de año #}
+    <div class="d-flex justify-content-center mb-4">
+        <form method="get" action="{{ url_for('admin.admin_panel') }}" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label for="anio" class="col-form-label"><strong>Año:</strong></label>
+            </div>
+            <div class="col-auto">
+                <select id="anio" name="anio" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for y in available_years %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <noscript>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Ver</button>
+                </noscript>
+            </div>
+        </form>
+    </div>
+
     {# Flash messages ya se muestran en base.html #}
 
     {# Secciones pendientes y aprobadas agrupadas por módulo #}
@@ -16,11 +37,10 @@
         ('Vacaciones',     pending_vacaciones,     approved_vacaciones,     'vacaciones')
     ] %}
 
-
     {% for titulo, pendientes, aprobadas, modulo in secciones %}
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Solicitudes de {{ titulo }} Pendientes</h5>
+                <h5 class="mb-0">Solicitudes de {{ titulo }} Pendientes ({{ selected_year }})</h5>
             </div>
             <div class="card-body">
                 {% if pendientes %}
@@ -44,6 +64,7 @@
                                 <form action="{{ url_for('admin.actualizar_estado') }}" method="post" class="row g-2 align-items-center">
                                     <input type="hidden" name="modulo" value="{{ modulo }}">
                                     <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                    <input type="hidden" name="anio" value="{{ selected_year }}">
                                     <div class="col-auto">
                                         <select name="nuevo_estado" class="form-select form-select-sm" required>
                                             <option value="aprobado">Aprobado</option>
@@ -69,7 +90,7 @@
         {#  Ahora la sección de APROBADAS, para restitución  #}
         <div class="card mb-4">
             <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Solicitudes de {{ titulo }} Aprobadas</h5>
+                <h5 class="mb-0">Solicitudes de {{ titulo }} Aprobadas ({{ selected_year }})</h5>
             </div>
             <div class="card-body">
                 {% if aprobadas %}
@@ -92,6 +113,7 @@
                                 <form action="{{ url_for('admin.actualizar_estado') }}" method="post" class="row g-2 align-items-center">
                                     <input type="hidden" name="modulo" value="{{ modulo }}">
                                     <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                    <input type="hidden" name="anio" value="{{ selected_year }}">
                                     <div class="col-auto">
                                         {# Solo “pendiente” para restituir #}
                                         <select name="nuevo_estado" class="form-select form-select-sm">
