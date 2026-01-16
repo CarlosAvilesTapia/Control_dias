@@ -1,7 +1,8 @@
 from flask import Blueprint, request, render_template
 from flask_login import login_required, current_user
-from models import get_db
+from models import get_db, create_request
 from datetime import datetime, timedelta
+from utils.dates import fecha_amigable
 
 vacaciones_bp = Blueprint('vacaciones', __name__)
 
@@ -33,6 +34,24 @@ def contar_dias_habiles(inicio, fin, feriados):
     return dias_habiles
 
 
+def buscar_conflicto_requests(db, user_id, new_start, new_end):
+    """
+    Conflicto general para VACACIONES:
+    - Las vacaciones (día completo / rango) chocan con cualquier request pendiente/aprobada
+      que se cruce, incluyendo administrativos de medio día.
+    Requiere que la tabla requests tenga half_day_part (NULL / 'AM' / 'PM') para mostrar.
+    """
+    return db.execute("""
+        SELECT id, request_type, start_date, end_date, status, days, half_day_part
+        FROM requests
+        WHERE user_id = ?
+          AND status IN ('pendiente', 'aprobada')
+          AND start_date <= ?
+          AND end_date >= ?
+        LIMIT 1
+    """, (user_id, new_end, new_start)).fetchone()
+
+
 @vacaciones_bp.route('/solicitar', methods=['GET', 'POST'])
 @login_required
 def solicitar_vacaciones():
@@ -47,16 +66,17 @@ def solicitar_vacaciones():
     # Total de días asignados al empleado
     total_vacaciones = int(current_user.dias_vacaciones)
 
-    # Sumar sólo las vacaciones con estado 'aprobado' del año actual
+    # Sumar sólo las vacaciones con estado 'aprobada' del año actual
     cur = db.execute(
         """
-        SELECT COALESCE(SUM(cantidad_dias), 0) AS total
-        FROM vacaciones
-        WHERE empleado_id = ?
-          AND estado = 'aprobado'
-          AND anio = ?
+        SELECT COALESCE(SUM(days), 0) AS total
+        FROM requests
+        WHERE user_id = ?
+          AND request_type = 'vacaciones'
+          AND status = 'aprobada'
+          AND substr(start_date, 1, 4) = ?
         """,
-        (empleado_id, current_year)
+        (empleado_id, str(current_year))
     )
     row = cur.fetchone()
     dias_usados = int(row['total']) if row and row['total'] is not None else 0
@@ -108,13 +128,8 @@ def solicitar_vacaciones():
         # Contar días hábiles entre inicio y fin
         dias_solicitados = contar_dias_habiles(inicio, fin, feriados_chile)
 
-        # Año de la solicitud: por simplicidad tomamos el año de fecha_inicio
-        # (si algún día permites rangos que crucen año, conviene decidir regla)
-        anio = int(fecha_inicio[:4])
-
         # ¿Se presionó “Calcular” o “Enviar”?
         if request.form.get('accion') == 'calcular':
-            # Sólo mostramos el resultado, no guardamos nada
             if dias_solicitados == 0:
                 message = "Estos días son por cuenta de la casa... de nada."
                 message_type = "danger"
@@ -150,7 +165,7 @@ def solicitar_vacaciones():
             )
 
         if dias_solicitados > disponibles:
-            message = f"Está solicitando {dias_solicitados} días, preo solo tiene {disponibles} días disponibles. Tírese una licencia, mejor."
+            message = f"Está solicitando {dias_solicitados} días, pero solo tiene {disponibles} días disponibles. Tírese una licencia, mejor."
             message_type = "danger"
             return render_template(
                 'solicitar_vacaciones.html',
@@ -162,18 +177,44 @@ def solicitar_vacaciones():
                 fecha_fin=fecha_fin
             )
 
-        # Registrar la solicitud con estado "pendiente"
-        db.execute(
-            """
-            INSERT INTO vacaciones (empleado_id, fecha_inicio, fecha_fin, cantidad_dias, estado, anio)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (empleado_id, fecha_inicio, fecha_fin, dias_solicitados, 'pendiente', anio)
+        # ✅ NUEVO: validar solapamiento contra TODO (vacaciones + administrativos, incluyendo medio día)
+        conflicto = buscar_conflicto_requests(db, empleado_id, fecha_inicio, fecha_fin)
+        if conflicto:
+            extra = ""
+            if conflicto["days"] == 0.5 and conflicto.get("half_day_part"):
+                extra = f" ({conflicto['half_day_part']})"
+
+            message = (
+                "Ya tienes una solicitud "
+                f"({conflicto['request_type']}) {conflicto['status']} que se cruza con las fechas: "
+                f"({fecha_amigable(conflicto['start_date'])} a {fecha_amigable(conflicto['end_date'])}{extra})."
+            )
+            message_type = "danger"
+            return render_template(
+                'solicitar_vacaciones.html',
+                message=message,
+                message_type=message_type,
+                disponibles=disponibles,
+                dias_solicitados=dias_solicitados,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin
+            )
+
+        # Registrar la solicitud SOLO en requests (tabla canónica)
+        create_request(
+            user_id=empleado_id,
+            request_type="vacaciones",
+            start_date=fecha_inicio,
+            end_date=fecha_fin,
+            days=dias_solicitados,
+            reason=None,
+            half_day_part=None  # vacaciones siempre día completo/rango
         )
-        db.commit()
 
         message = "Solicitud de vacaciones enviada. Mande fruta y vuelva con algo."
         message_type = "success"
+
+        # feedback inmediato
         disponibles -= dias_solicitados
 
         return render_template(

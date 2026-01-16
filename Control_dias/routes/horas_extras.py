@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from models import get_db
 from datetime import datetime
@@ -8,6 +8,12 @@ horas_extras_bp = Blueprint('horas_extras', __name__)
 @horas_extras_bp.route('/reportar', methods=['GET', 'POST'])
 @login_required
 def reportar_horas_extras():
+    if not current_app.config.get("FEATURE_HORAS_EXTRAS", False):
+        return render_template(
+            "feature_disabled.html",
+            message="Ya no hay horas extras. Póngase la camiseta!"
+        ), 403
+        
     message = None
     message_type = None
     empleado_id = current_user.id
@@ -77,6 +83,12 @@ def reportar_horas_extras():
 @horas_extras_bp.route('/solicitar_compensadas', methods=['GET', 'POST'])
 @login_required
 def solicitar_horas_compensadas():
+    if not current_app.config.get("FEATURE_COMPENSADAS", False):
+        return render_template(
+            "feature_disabled.html",
+            message="Si no hay horas extras... ¿De dónde va a sacar compensadas?"
+        ), 403
+
     message = None
     message_type = None
     empleado_id = current_user.id

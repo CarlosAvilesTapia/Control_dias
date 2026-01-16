@@ -37,20 +37,41 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/vacaciones/solicitar">Vacaciones</a>
+                        <a class="nav-link" href="{{ url_for('vacaciones.solicitar_vacaciones') }}">
+                            Vacaciones
+                        </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" href="/horas_extras/reportar">Horas Extras</a>
+                        <a class="nav-link" href="{{ url_for('horas_extras.reportar_horas_extras') }}">
+                            Horas Extras
+                        </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" href="/horas_extras/solicitar_compensadas">Horas Compensadas</a>
+                        <a class="nav-link" href="{{ url_for('horas_extras.solicitar_horas_compensadas') }}">
+                            Horas Compensadas
+                        </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" href="/dias_administrativos/solicitar">Días Administrativos</a>
+                        <a class="nav-link" href="{{ url_for('dias_administrativos.solicitar_administrativos') }}">
+                            Días Administrativos
+                        </a>
                         </li>
+
+                        <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('solicitudes.mis_solicitudes') }}">
+                            Mis solicitudes
+                        </a>
+                        </li>
+
+
                         {% if current_user.role == 'administrador' %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/panel">Aprobar Solicitudes</a>
+                            <a class="nav-link" href="{{ url_for('admin.admin_panel') }}">
+                                Aprobar Solicitudes
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboards.dashboard') }}">Dashboard</a>

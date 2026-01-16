@@ -27,8 +27,6 @@
         </form>
     </div>
 
-    {# Flash messages ya se muestran en base.html #}
-
     {# Secciones pendientes y aprobadas agrupadas por módulo #}
     {% set secciones = [
         ('Horas Compensadas', pending_horas_compensadas, approved_horas_compensadas, 'horas_compensadas'),
@@ -49,18 +47,23 @@
                             <div class="list-group-item">
                                 <p class="mb-1">
                                     <strong>Empleado:</strong> {{ solicitud.username }}<br>
+
                                     {% if modulo == 'vacaciones' %}
-                                        <strong>Fechas:</strong> {{ solicitud.fecha_inicio }} a {{ solicitud.fecha_fin }}<br>
+                                        <strong>Fechas:</strong> {{ solicitud.start_date }} a {{ solicitud.end_date }}<br>
                                         <strong>Días solicitados:</strong> {{ solicitud.dias_solicitados|int }}
+
                                     {% elif modulo == 'dias_administrativos' %}
-                                        <strong>Días:</strong> {{ solicitud.cantidad_dias }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                        <strong>Días:</strong> {{ solicitud.days|int }} - <strong>Fecha:</strong> {{ solicitud.start_date }}
+
                                     {% elif modulo == 'horas_extras' %}
-                                        <strong>Fecha:</strong> {{ solicitud.fecha }}<br>
-                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Motivo:</strong> {{ solicitud.motivo }}
+                                        <strong>Fecha:</strong> {{ solicitud.start_date }}<br>
+                                        <strong>Horas:</strong> {{ solicitud.days }}{% if solicitud.reason %} - <strong>Motivo:</strong> {{ solicitud.reason }}{% endif %}
+
                                     {% elif modulo == 'horas_compensadas' %}
-                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                        <strong>Horas:</strong> {{ solicitud.days }} - <strong>Fecha:</strong> {{ solicitud.start_date }}
                                     {% endif %}
                                 </p>
+
                                 <form action="{{ url_for('admin.actualizar_estado') }}" method="post" class="row g-2 align-items-center">
                                     <input type="hidden" name="modulo" value="{{ modulo }}">
                                     <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
@@ -99,23 +102,28 @@
                             <div class="list-group-item">
                                 <p class="mb-1">
                                     <strong>Empleado:</strong> {{ solicitud.username }}<br>
+
                                     {% if modulo == 'vacaciones' %}
-                                        <strong>Fechas:</strong> {{ solicitud.fecha_inicio }} a {{ solicitud.fecha_fin }}<br>
+                                        <strong>Fechas:</strong> {{ solicitud.start_date }} a {{ solicitud.end_date }}<br>
                                         <strong>Días solicitados:</strong> {{ solicitud.dias_solicitados|int }}
+
                                     {% elif modulo == 'dias_administrativos' %}
-                                        <strong>Días:</strong> {{ solicitud.cantidad_dias }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                        <strong>Días:</strong> {{ solicitud.days|int }} - <strong>Fecha:</strong> {{ solicitud.start_date }}
+
                                     {% elif modulo == 'horas_extras' %}
-                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Motivo:</strong> {{ solicitud.motivo }}
+                                        <strong>Fecha:</strong> {{ solicitud.start_date }}<br>
+                                        <strong>Horas:</strong> {{ solicitud.days }}{% if solicitud.reason %} - <strong>Motivo:</strong> {{ solicitud.reason }}{% endif %}
+
                                     {% elif modulo == 'horas_compensadas' %}
-                                        <strong>Horas:</strong> {{ solicitud.cantidad_horas }} - <strong>Fecha:</strong> {{ solicitud.fecha_solicitud }}
+                                        <strong>Horas:</strong> {{ solicitud.days }} - <strong>Fecha:</strong> {{ solicitud.start_date }}
                                     {% endif %}
                                 </p>
+
                                 <form action="{{ url_for('admin.actualizar_estado') }}" method="post" class="row g-2 align-items-center">
                                     <input type="hidden" name="modulo" value="{{ modulo }}">
                                     <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
                                     <input type="hidden" name="anio" value="{{ selected_year }}">
                                     <div class="col-auto">
-                                        {# Solo “pendiente” para restituir #}
                                         <select name="nuevo_estado" class="form-select form-select-sm">
                                             <option value="pendiente">Restituir a Pendiente</option>
                                         </select>

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Solicitar Días Administrativos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white text-center">
+        <h4 class="mb-0">Solicitar Días Administrativos</h4>
+      </div>
+
+      <div class="card-body">
+        <form method="post" novalidate>
+          <div class="mb-3">
+            <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+            <input
+              type="date"
+              class="form-control"
+              id="fecha_inicio"
+              name="fecha_inicio"
+              value="{{ fecha_inicio or '' }}"
+              required
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="fecha_fin" class="form-label">Fecha fin</label>
+            <input
+              type="date"
+              class="form-control"
+              id="fecha_fin"
+              name="fecha_fin"
+              value="{{ fecha_fin or '' }}"
+              required
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="jornada" class="form-label">Jornada</label>
+            <select class="form-select" id="jornada" name="jornada">
+              <option value="completo" {% if (jornada or 'completo') == 'completo' %}selected{% endif %}>
+                Día completo (1.0)
+              </option>
+              <option value="am" {% if jornada == 'am' %}selected{% endif %}>
+                Medio día AM (0.5)
+              </option>
+              <option value="pm" {% if jornada == 'pm' %}selected{% endif %}>
+                Medio día PM (0.5)
+              </option>
+            </select>
+            <div class="form-text">
+              Para medio día, usa la misma fecha en inicio y fin.
+            </div>
+          </div>
+
+          {% if disponibles is not none %}
+            <p><strong>Días disponibles:</strong> {{ disponibles }}</p>
+          {% endif %}
+
+          {% if dias_solicitados is not none %}
+            <p><strong>Días solicitados:</strong> {{ dias_solicitados }}</p>
+          {% endif %}
+
+          {% if message %}
+            {% set alert_class = "info" %}
+            {% if message_type == "success" %}{% set alert_class = "success" %}{% endif %}
+            {% if message_type == "danger"  %}{% set alert_class = "danger"  %}{% endif %}
+            <div class="alert alert-{{ alert_class }}">
+              {{ message }}
+            </div>
+          {% endif %}
+
+          <div class="d-grid gap-2">
+            <button type="submit" name="accion" value="calcular" class="btn btn-outline-primary">
+              Calcular
+            </button>
+            <button type="submit" name="accion" value="enviar" class="btn btn-success">
+              Solicitar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

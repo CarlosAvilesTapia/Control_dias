@@ -1,6 +1,15 @@
 import sqlite3
 from flask import current_app, g
+from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(UserMixin):
+    def __init__(self, id, username, role, dias_vacaciones=0, activo=1):
+        self.id = id
+        self.username = username
+        self.role = role
+        self.dias_vacaciones = dias_vacaciones
+        self.activo = activo
 
 def get_db():
     if 'db' not in g:
@@ -38,3 +47,32 @@ def create_user(username, password, role='empleado', dias_vacaciones=15):
 def verify_password(user, password):
     """Verifica que la contraseña proporcionada coincide con el hash almacenado."""
     return check_password_hash(user['password_hash'], password)
+
+def create_request(user_id, request_type, start_date, end_date, days, reason=None, half_day_part=None):
+    """
+    Crea una solicitud en la tabla requests con estado 'pendiente'.
+    """
+    db = get_db()
+    db.execute("""
+        INSERT INTO requests (user_id, request_type, status, start_date, end_date, days, reason, half_day_part)
+        VALUES (?, ?, 'pendiente', ?, ?, ?, ?, ?)
+        """,
+        (user_id, request_type, start_date, end_date, days, reason, half_day_part)
+    )
+    db.commit()
+
+    return db.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+def update_request_status(request_id, nuevo_estado, admin_comment=None):
+    """
+    Cambia el estado de una solicitud (pendiente/aprobada/rechazada).
+    El comentario del admin es opcional.
+    """
+    db = get_db()
+    db.execute("""
+        UPDATE requests
+        SET status = ?,
+            admin_comment = COALESCE(?, admin_comment)
+        WHERE id = ?
+    """, (nuevo_estado, admin_comment, request_id))
+    db.commit()

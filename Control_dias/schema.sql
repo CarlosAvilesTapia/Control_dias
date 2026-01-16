@@ -52,3 +52,22 @@ CREATE TABLE IF NOT EXISTS horas_compensadas (
     anio INTEGER NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES users(id)
 );
+
+-- Tabla para mostrar solicitudes
+CREATE TABLE IF NOT EXISTS requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    request_type TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendiente',
+    start_date TEXT,
+    end_date TEXT,
+    days REAL,
+    reason TEXT,
+    admin_comment TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT,
+    reviewed_by INTEGER,
+    reviewed_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (reviewed_by) REFERENCES users (id)
+);

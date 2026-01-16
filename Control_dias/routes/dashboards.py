@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, abort
 from flask_login import login_required, current_user
 from models import get_db
 from charts import create_vacation_chart, create_admin_chart, create_hours_chart
-from routes.vacaciones import contar_dias_habiles, feriados_chile
 from datetime import datetime
 
 dashboards_bp = Blueprint('dashboards', __name__)
@@ -37,28 +36,38 @@ def employee_dashboard(employee_id):
     if not employee:
         abort(404)
 
-    # VACACIONES
-    vac_total = int(employee['dias_vacaciones'])    
+    # VACACIONES (desde requests)
+    current_year = str(datetime.now().year)
+
+    # VACACIONES (requests)
+    vac_total = int(employee['dias_vacaciones'])
     vac_used_row = db.execute("""
-        SELECT SUM(cantidad_dias) AS used
-        FROM vacaciones
-        WHERE empleado_id = ? AND estado = 'aprobado'
-    """, (employee_id,)).fetchone()
-    vac_used = int(vac_used_row['used']) if vac_used_row['used'] is not None else 0
-
+        SELECT COALESCE(SUM(days), 0) AS used
+        FROM requests
+        WHERE user_id = ?
+          AND request_type = 'vacaciones'
+          AND status = 'aprobada'
+          AND substr(start_date, 1, 4) = ?
+    """, (employee_id, current_year)).fetchone()
+    vac_used = int(vac_used_row['used']) if vac_used_row and vac_used_row['used'] is not None else 0
     vac_available = max(0, vac_total - vac_used)
-    vac_chart     = create_vacation_chart(vac_total, vac_used)
+    vac_chart = create_vacation_chart(vac_total, vac_used)
 
-    # DÍAS ADMINISTRATIVOS
+    # DÍAS ADMINISTRATIVOS (requests)
     admin_max = 6.0
-    admin_used_row = db.execute(
-        "SELECT SUM(cantidad_dias) AS used "
-        "FROM dias_administrativos WHERE empleado_id = ? AND estado = 'aprobado'",
-        (employee_id,)
-    ).fetchone()
-    admin_used = float(admin_used_row['used']) if admin_used_row['used'] is not None else 0.0
-    admin_available = max(0, admin_max - admin_used)
+    admin_used_row = db.execute("""
+        SELECT COALESCE(SUM(days), 0) AS used
+        FROM requests
+        WHERE user_id = ?
+          AND request_type = 'administrativo'
+          AND status = 'aprobada'
+          AND substr(start_date, 1, 4) = ?
+    """, (employee_id, current_year)).fetchone()
+    admin_used = float(admin_used_row['used']) if admin_used_row and admin_used_row['used'] is not None else 0.0
+    admin_available = max(0.0, admin_max - admin_used)
     admin_chart = create_admin_chart(admin_max, admin_used)
+
+
 
     # HORAS EXTRAS
     extra_row = db.execute(
@@ -93,7 +102,9 @@ def employee_dashboard(employee_id):
         extra_approved=extra_approved,
         comp_requested=comp_requested,
         hours_available=hours_available,
-        hours_chart=hours_chart
+        hours_chart=hours_chart,
+        horas_chart=hours_chart,
+
     )
 
 
@@ -104,28 +115,37 @@ def mi_dashboard():
     db = get_db()
     empleado_id = current_user.id
 
-    # VACACIONES
+    # VACACIONES (desde requests)
+    current_year = str(datetime.now().year)
+
+    # VACACIONES (requests)
     vac_total = int(current_user.dias_vacaciones)
     vac_used_row = db.execute("""
-        SELECT SUM(cantidad_dias) AS used
-        FROM vacaciones
-        WHERE empleado_id = ? AND estado = 'aprobado'
-    """, (empleado_id,)).fetchone()
-    vac_used = int(vac_used_row['used']) if vac_used_row['used'] is not None else 0
-
+        SELECT COALESCE(SUM(days), 0) AS used
+        FROM requests
+        WHERE user_id = ?
+          AND request_type = 'vacaciones'
+          AND status = 'aprobada'
+          AND substr(start_date, 1, 4) = ?
+    """, (empleado_id, current_year)).fetchone()
+    vac_used = int(vac_used_row['used']) if vac_used_row and vac_used_row['used'] is not None else 0
     vac_available = max(0, vac_total - vac_used)
-    vac_chart     = create_vacation_chart(vac_total, vac_used)
+    vac_chart = create_vacation_chart(vac_total, vac_used)
 
-    # DÍAS ADMINISTRATIVOS
+    # DÍAS ADMINISTRATIVOS (requests)
     admin_max = 6.0
-    admin_used_row = db.execute(
-        "SELECT SUM(cantidad_dias) AS used "
-        "FROM dias_administrativos WHERE empleado_id = ? AND estado = 'aprobado'",
-        (empleado_id,)
-    ).fetchone()
-    admin_used = float(admin_used_row['used']) if admin_used_row['used'] is not None else 0.0
-    admin_available = max(0, admin_max - admin_used)
+    admin_used_row = db.execute("""
+        SELECT COALESCE(SUM(days), 0) AS used
+        FROM requests
+        WHERE user_id = ?
+          AND request_type = 'administrativo'
+          AND status = 'aprobada'
+          AND substr(start_date, 1, 4) = ?
+    """, (empleado_id, current_year)).fetchone()
+    admin_used = float(admin_used_row['used']) if admin_used_row and admin_used_row['used'] is not None else 0.0
+    admin_available = max(0.0, admin_max - admin_used)
     admin_chart = create_admin_chart(admin_max, admin_used)
+
 
     # HORAS EXTRAS y COMPENSADAS
     extra_row = db.execute(
@@ -159,5 +179,6 @@ def mi_dashboard():
         extra_approved=extra_approved,
         comp_requested=comp_requested,
         hours_available=hours_available,
-        horas_chart=hours_chart
+        horas_chart=hours_chart,
+        hours_chart=hours_chart,
     )
