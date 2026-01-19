@@ -70,12 +70,17 @@
                 {% if s["request_type"] in ["horas_extras", "horas_compensadas"] %}
                   {{ s["days"] }} h
                 {% else %}
-                  {{ s["days"]|int }} d
+                  {% if s["days"] == (s["days"]|int) %}
+                    {{ s["days"]|int }} d
+                  {% else %}
+                    {{ "%.1f"|format(s["days"]) }} d
+                  {% endif %}
                 {% endif %}
               {% else %}
                 -
               {% endif %}
             </td>
+
 
             <td>
               {% if s["status"] == "pendiente" %}

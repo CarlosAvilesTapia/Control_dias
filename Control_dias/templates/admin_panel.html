@@ -53,7 +53,14 @@
                                         <strong>Días solicitados:</strong> {{ solicitud.dias_solicitados|int }}
 
                                     {% elif modulo == 'dias_administrativos' %}
-                                        <strong>Días:</strong> {{ solicitud.days|int }} - <strong>Fecha:</strong> {{ solicitud.start_date }}
+                                        <strong>Días:</strong>
+                                        {% if solicitud.days == (solicitud.days|int) %}
+                                          {{ solicitud.days|int }}
+                                        {% else %}
+                                          {{ "%.1f"|format(solicitud.days) }}
+                                        {% endif %}
+                                          - <strong>Fecha:</strong> {{ solicitud.start_date }}
+
 
                                     {% elif modulo == 'horas_extras' %}
                                         <strong>Fecha:</strong> {{ solicitud.start_date }}<br>
