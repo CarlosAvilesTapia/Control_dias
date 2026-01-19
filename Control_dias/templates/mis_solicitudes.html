@@ -36,7 +36,7 @@
             <td>
               {% if s["request_type"] == "vacaciones" %}
                 Vacaciones
-              {% elif s["request_type"] == "dia_administrativo" %}
+              {% elif s["request_type"] == "administrativo" %}
                 Día administrativo
               {% elif s["request_type"] == "horas_extras" %}
                 Horas extras
@@ -47,7 +47,14 @@
               {% endif %}
             </td>
 
-            <td>{{ s["created_at"] | fecha }}</td>
+            <td>
+              {% if s["created_at"] %}
+                {{ s["created_at"] | fecha }}
+              {% else %}
+                {{ s["start_date"] | fecha }}
+              {% endif %}
+            </td>
+
 
             <td>
               {% if s["end_date"] and s["end_date"] != s["start_date"] %}

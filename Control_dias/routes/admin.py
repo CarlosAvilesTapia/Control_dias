@@ -18,7 +18,7 @@ MAP_ESTADOS = {
 }
 
 TIPOS = {
-    "dias_administrativos": "dia_administrativo",
+    "dias_administrativos": "administrativo",
     "vacaciones": "vacaciones",
     "horas_extras": "horas_extras",
     "horas_compensadas": "horas_compensadas",
@@ -54,9 +54,13 @@ def admin_panel():
         ORDER BY anio DESC
     """).fetchall()
 
-    available_years = [r['anio'] for r in years_rows if r['anio'] is not None] or [current_year]
+    available_years = [r['anio'] for r in years_rows if r['anio'] is not None]
+    if not available_years:
+        available_years = [current_year]
+
+    # si el año pedido no está disponible, cae al más reciente disponible
     if selected_year not in available_years:
-        available_years = [selected_year] + available_years
+        selected_year = available_years[0]
 
     # Helper para traer solicitudes por tipo/estado/año
     def traer_solicitudes(request_type, status, year):
@@ -79,12 +83,12 @@ def admin_panel():
               AND r.status = ?
               AND r.start_date IS NOT NULL
               AND substr(r.start_date, 1, 4) = ?
-            ORDER BY datetime(r.created_at) DESC
+            ORDER BY r.start_date DESC, r.id DESC
         """, (request_type, status, str(year))).fetchall()
 
     # --- DÍAS ADMINISTRATIVOS ---
-    pending_administrativos = traer_solicitudes("dia_administrativo", "pendiente", selected_year)
-    approved_administrativos = traer_solicitudes("dia_administrativo", "aprobada", selected_year)
+    pending_administrativos = traer_solicitudes("administrativo", "pendiente", selected_year)
+    approved_administrativos = traer_solicitudes("administrativo", "aprobada", selected_year)
 
     # --- VACACIONES ---
     # Aquí, days debería venir ya calculado al solicitar. Si por alguna razón viene None, hacemos fallback.
@@ -143,7 +147,12 @@ def actualizar_estado():
     solicitud_id = request.form.get('solicitud_id')
     nuevo_estado_raw = request.form.get('nuevo_estado')
 
-    selected_year = request.form.get('anio', type=int) or datetime.now().year
+    raw = request.form.get('anio')
+    try:
+        selected_year = int(raw) if raw else datetime.now().year
+    except ValueError:
+        selected_year = datetime.now().year
+
 
     if not solicitud_id or not nuevo_estado_raw:
         flash("Faltan datos para actualizar el estado.", "error")
